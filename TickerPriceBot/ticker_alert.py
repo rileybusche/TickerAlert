@@ -17,83 +17,78 @@ def postToDiscord(message):
 
 # Make API Call For Stock Ticker
 def callStockAPI(ticker, mode):
-    results = []
+    results = ""
     ticker_list = []
 
     if mode == "single":
         ticker_list.append(ticker)
+        try:
+            response = requests.get(f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={api_key}')
+            response_json = response.json()
+            print(response)
+            print(response_json)
+            price = float(response_json["Global Quote"]["05. price"])
+            results += f"The Price of {ticker} is: ${price:.2f}"
+        except:
+            results += f"There was no price information for {ticker}."
+
     elif mode == "all":
         ticker_list = [line.rstrip('\n') for line in open('tickers.txt')]
     
-    # Alphavantage
-    for ticker in ticker_list:    
-        response = requests.get(f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={api_key}')
-        response_json = response.json()
-        print(response)
-        print(response_json)
-        price = float(response_json["Global Quote"]["05. price"])
-        results.append(f"The Price of {ticker} is: ${price:.2f}")
+        # Alphavantage
+        for ticker in ticker_list:    
+            try:
+                response = requests.get(f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={api_key}')
+                response_json = response.json()
+                print(response)
+                print(response_json)
+                price = float(response_json["Global Quote"]["05. price"])
+                results += f"The Price of {ticker} is: ${price:.2f}.\nNow tracking {ticker}"
+            except:
+                results += f"There was no price information for {ticker}.\nDid not add {ticker}."
 
-    # Posts if succesful 
-    if response.status_code != 200:
-         #postToDiscord("Response code not 200: {}".format(response.status_code))
-        results = f"Response code not 200: {response.status_code}"
-
-    # Converting List to Single stream for output
-    message = ""
-    for result in results:
-        if len(results) == 1:
-            message = str(result)
-        else:
-            message += (str(requests) + "\n")
+    print(results)
     
-    print(message)
-    
-    return message
+    return results
 
 # Make API Call For Crypto Ticker
 def callCryptoAPI(crypto, mode):
-    results = []
+    results = ""
     crypto_list = []
 
     if mode == "single":
         crypto_list.append(crypto)
         try:
+            print(crypto_list)
             response = requests.get(f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={crypto}&to_currency=USD&apikey={api_key}")
             response_json = response.json()
             print(response)
             print(response_json)
             price = float(response_json["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
-            results.append(f"The Price of {crypto} is: ${price:.2f}")
+            results += f"The Price of {crypto} is: ${price:.2f}"
         except:
-            results.append(f"There was no price information for {crypto}.")
+            results += f"There was no price information for {crypto}.\nDid not add {crypto}."
 
     elif mode == "all":
         crypto_list = [line.rstrip('\n') for line in open('cryptos.txt')]
     
-    # Alphavantage
-    for crypto in crypto_list:    
-        try:
-            response = requests.get(f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={crypto}&to_currency=USD&apikey={api_key}")
-            response_json = response.json()
-            print(response)
-            print(response_json)
-            price = float(response_json["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
-            results.append(f"The Price of {crypto} is: ${price:.2f}")
-        except:
-            results.append(f"There was no price information for {crypto}.")
+        # Alphavantage
+        for crypto in crypto_list:    
+            try:
+                response = requests.get(f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={crypto}&to_currency=USD&apikey={api_key}")
+                response_json = response.json()
+                print(response)
+                print(response_json)
+                price = float(response_json["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
+                results += f"The Price of {crypto} is: ${price:.2f}\n"
+            except:
+                results += f"There was no price information for {crypto}."
 
     # Converting List to Single stream for output
-    message = ""
-    for result in results:
-        if len(results) == 1:
-            message = str(result)
-        else:
-            message += (str(requests) + "\n")
     
-    print(message)
+    print(results)
     
-    return message
+    return results
 
 
 

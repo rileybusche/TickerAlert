@@ -31,61 +31,74 @@ async def Price_Crypto(ctx, crypto: str):
 
 # Lists price for all tracked tickers
 @bot.command()
-async def All(ctx):
-    await ctx.send(f"```\nAll Tracked Tickers:\n```" + ticker_alert.callStockAPI("null", "all"))
+async def All_Stocks(ctx):
+    await ctx.send(f"```fix\nAll Tracked Tickers:\n" + ticker_alert.callStockAPI("null", "all") + "```")
+
+# Lists price for all tracked cryptos
+@bot.command()
+async def All_Cryptos(ctx):
+    await ctx.send(f"```fix\nAll Tracked Cryptos:\n" + ticker_alert.callCryptoAPI("null", "all") + "```" )
 
 # Add to list of tracked tickers (tickers.txt)
 @bot.command()
 async def Add_Stock(ctx, ticker):
+    # API call to try and receive a price, if error, not a valid ticker.
+    try:
+        crypto_price = ticker_alert.callCryptoAPI(ticker, "single")
+    except:
+        await ctx.send(f"{ticker} is not a valid crypto ticker.")
+        return
+
+    # Checking if File Exists
     if os.path.exists("tickers.txt"):
-        mode = "a"
+        ticker_list_contents = ticker_list = [line.rstrip('\n') for line in open('tickers.txt')]
+        for check_ticker in ticker_list_contents:
+            if ticker.lower() == check_ticker.lower():
+                # Ticker already in list
+                await ctx.send(f"```fix\n{ticker} already tracked. \n" + ticker_alert.callStockAPI(ticker, "single") + "```")
+                return
+            else:
+                # Ticker not in list
+                ticker_file = open('tickers.txt', 'a')
+                ticker_file.write(ticker + "\n")
+                await ctx.send(f"```fix\nCheckingcle {ticker} \n" + ticker_alert.callStockAPI(ticker, "single") + "```")
+                return
+
     else:
-        mode = "w"
-
-    ticker_list_contents = ticker_list = [line.rstrip('\n') for line in open('tickers.txt')]
-    for check_ticker in ticker_list_contents:
-        if ticker.lower() == check_ticker.lower():
-            ticker_in_file = True
-        else:
-            ticker_in_file = False
-
-    if not ticker_in_file:
-    # Ticker not in list
-        ticker_file = open('tickers.txt', 'a')
+        ticker_file = open('tickers.txt', 'w')
         ticker_file.write(ticker + "\n")
-        await ctx.send(f"```fix\nAdding {ticker} \n" + ticker_alert.callStockAPI(ticker, "single") + "```")
-    else:
-        # Ticker already in list
-        await ctx.send(f"```fix\n{ticker} already tracked. \n" + ticker_alert.callStockAPI(ticker, "single") + "```")
+        await ctx.send(f"```fix\nChecking {ticker} \n" + ticker_alert.callStockAPI(ticker, "single") + "```")
+        
 
 # Add to list of tracked cryptos (cryptos.txt)
 @bot.command()
 async def Add_Crypto(ctx, crypto):
+    # API call to try and receive a price, if error, not a valid crypto.
     try:
         crypto_price = ticker_alert.callCryptoAPI(crypto, "single")
     except:
-        await ctx.send(f"{crypto} is not a valid crypto ticker.")
+        await ctx.send(f"{crypto} is not a valid crypto currency.")
         return
 
+    # Make a "doesExist()"
     if os.path.exists("cryptos.txt"):
-        mode = "a"
         crypto_list_contents = crypto_list = [line.rstrip('\n') for line in open('cryptos.txt')]
         for check_crypto in crypto_list_contents:
             if crypto.lower() == check_crypto.lower():
-                crypto_in_file = True
-        else:
-            crypto_in_file = False
+                # Crypto already in list
+                await ctx.send(f"```fix\n{crypto} already tracked. \n" + ticker_alert.callCryptoAPI(crypto, "single") + "```")
+                return
+            else:
+                # Crypto not in list
+                crypto_file = open('cryptos.txt', 'a')
+                crypto_file.write(crypto + "\n")
+                await ctx.send(f"```fix\nAdding {crypto} \n" + ticker_alert.callCryptoAPI(crypto, "single") + "```")
+
     else:
-        mode = "w"
-    print("got to here")
-    if not crypto_in_file:
-        # Ticker not in list
-        crypto_file = open('cryptos.txt', mode)
+        # Crypto not in list
+        crypto_file = open('cryptos.txt', 'w')
         crypto_file.write(crypto + "\n")
-        await ctx.send(f"```fix\nAdding {crypto} \n" + ticker_alert.callStockAPI(crypto, "single") + "```")
-    else:
-        # Ticker already in list
-        await ctx.send(f"```fix\n{crypto} already tracked. \n" + ticker_alert.callStockAPI(crypto, "single") + "```")
+        await ctx.send(f"```fix\nAdding {crypto} \n" + ticker_alert.callCryptoAPI(crypto, "single") + "```")
 
 # Remove 
 @bot.command()
